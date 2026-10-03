@@ -83,7 +83,7 @@ async function setStatus(status) {
     panelError.value =
       data?.status?.[0] ||
       data?.detail ||
-      '状态更新失败（标「已固化」需最近浸渍固化时长 ≥ 12 小时）'
+      '状态更新失败（标「已固化」需固化时长 ≥ 12 小时；已固化卷拨回原布需有效画押编号）'
   } finally {
     panelBusy.value = false
   }
@@ -133,7 +133,7 @@ onMounted(load)
     <header class="rack-head">
       <div>
         <h1>帆布间晾晒架</h1>
-        <p class="sub">按帆布间挂卷；点选布卷登记浸渍或标固化。固化规则：最近浸渍时长 ≥ 12 小时。</p>
+        <p class="sub">按帆布间挂卷；点选布卷登记浸渍或标固化。固化规则：最近浸渍时长 ≥ 12 小时；已固化卷拨回原布须客户画押编号。</p>
       </div>
       <button class="btn secondary" type="button" @click="load">刷新架面</button>
     </header>
@@ -211,6 +211,14 @@ onMounted(load)
         <span class="hint">{{ selected.fabricWeightGsm }} gsm</span>
       </div>
       <p v-if="selected.notes" class="hint">{{ selected.notes }}</p>
+      <p v-if="selected.status === 'cured'" class="hint signoff-hint">
+        <template v-if="selected.activeSignOffCode">
+          画押编号 <strong>{{ selected.activeSignOffCode }}</strong>（有效，可拨回原布）
+        </template>
+        <template v-else>
+          尚未画押 —— 拨回原布前须由客户在<router-link to="/signoffs">客户画押</router-link>页落下 6 位编号
+        </template>
+      </p>
       <p v-if="panelError" class="error">{{ panelError }}</p>
 
       <div class="drawer-actions">

@@ -1,4 +1,7 @@
+from django.conf import settings
+from django.core.validators import RegexValidator
 from django.db import models
+from django.utils import timezone
 
 
 class Loft(models.Model):
@@ -58,3 +61,43 @@ class DipRun(models.Model):
 
     def __str__(self):
         return f"Dip@{self.roll_id} {self.started_at}"
+
+
+class RollSignOff(models.Model):
+    """客户画押编号：已固化卷拨回原布前，客户在专页落下的 6 位数字编号。"""
+
+    roll = models.ForeignKey(ClothRoll, on_delete=models.CASCADE, related_name="signoffs")
+    code = models.CharField(
+        max_length=6,
+        validators=[RegexValidator(r"^[0-9]{6}$", "画押编号必须正好 6 位数字")],
+    )
+    signed_at = models.DateTimeField(default=timezone.now)
+    signed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        related_name="signoffs",
+    )
+    voided_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-signed_at", "-id"]
+        constraints = [
+            # 同一卷未作废画押最多一条（数据库层兜底，防并发双落）
+            models.UniqueConstraint(
+                fields=["roll"],
+                condition=models.Q(voided_at__isnull=True),
+                name="uniq_active_signoff_per_roll",
+            ),
+            models.CheckConstraint(
+                check=models.Q(code__regex=r"^[0-9]{6}$"),
+                name="signoff_code_six_digits",
+            ),
+        ]
+
+    @property
+    def is_active(self):
+        return self.voided_at is None
+
+    def __str__(self):
+        return f"SignOff@{self.roll_id} {self.code}"

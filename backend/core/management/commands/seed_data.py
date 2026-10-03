@@ -57,8 +57,13 @@ class Command(BaseCommand):
         r2 = ClothRoll.objects.create(
             loft=loft, roll_code="R-02", status=ClothRoll.STATUS_RAW, fabric_weight_gsm=380
         )
+        # 验收种子：R-03 已固化且无任何画押编号（拨回原布应被挡）
         r3 = ClothRoll.objects.create(
-            loft=loft, roll_code="R-03", status=ClothRoll.STATUS_CURED, fabric_weight_gsm=450
+            loft=loft,
+            roll_code="R-03",
+            status=ClothRoll.STATUS_CURED,
+            fabric_weight_gsm=450,
+            notes="已固化，客户尚未画押",
         )
 
         now = timezone.now()
