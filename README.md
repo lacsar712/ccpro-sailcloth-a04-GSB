@@ -31,7 +31,10 @@
 
 布卷状态不可设为「已固化」（`cured`），除非该卷**最近一条** `DipRun` 的 `cureHours` 已记录且 **≥ 12**。
 
-规则实现：`backend/core/rules.py`
+- **已固化卷拨回原布**：必须持有该卷当前**未作废**的客户画押编号（6 位数字）；无有效编号一律中文挡住，作废编号不放行。画押不参与固化判断。
+- **客户画押（CustomerMark）**：操作工可落编号（必须正好 6 位数字）；作废仅管理员；同一卷未作废编号最多一条（应用层 + 数据库部分唯一约束双重兜底，并发交叉只留一条）。
+
+规则实现：`backend/core/rules.py`（`can_mark_roll_cured` / `can_revert_to_raw`）
 
 ## 快速启动
 
@@ -46,9 +49,11 @@ docker compose up --build
 
 - **登录** → 进入主工作面
 - **`/` 帆布间晾晒架（主）**：按帆布间挂布卷芯片（挂签状态 `raw` / `dipping` / `cured`）；点击打开右侧面板登记 `DipRun`、切换固化状态；架下为浸渍流水次要信息流
-- **`/rolls` · `/dips`（次要台账）**：保留列表/表单 CRUD，侧栏降级为「台账」入口，非主路径
+- **`/marks` 客户画押专页**：筛选有效/已作废、落下 6 位编号、管理员作废
+- **`/rolls` · `/dips`（次要台账）**：保留列表/表单 CRUD
+- 侧栏已收成完整顶栏（晾晒架 / 客户画押 / 台账入口）
 
-API 契约不变（JWT、`/api/lofts|rolls|dips|dashboard/`）。
+API（JWT）：`/api/lofts|rolls|dips|marks|dashboard/`，作废 `POST /api/marks/{id}/revoke/`（仅管理员）。
 
 ## 配色
 

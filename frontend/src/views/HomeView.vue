@@ -83,7 +83,7 @@ async function setStatus(status) {
     panelError.value =
       data?.status?.[0] ||
       data?.detail ||
-      '状态更新失败（标「已固化」需最近浸渍固化时长 ≥ 12 小时）'
+      '状态更新失败（已固化卷拨回原布须持有未作废的客户画押编号；标「已固化」需最近浸渍固化时长 ≥ 12 小时）'
   } finally {
     panelBusy.value = false
   }
@@ -166,6 +166,9 @@ onMounted(load)
             <span class="hang-tag" :class="'tag-' + roll.status">
               {{ statusLabel[roll.status] || roll.status }}
             </span>
+            <span v-if="roll.activeMarkCode" class="mark-seal" :title="`有效画押编号 ${roll.activeMarkCode}`">
+              押 {{ roll.activeMarkCode }}
+            </span>
             <span class="chip-code">{{ roll.rollCode }}</span>
             <span class="chip-gsm">{{ roll.fabricWeightGsm }} gsm</span>
           </button>
@@ -210,6 +213,14 @@ onMounted(load)
         </span>
         <span class="hint">{{ selected.fabricWeightGsm }} gsm</span>
       </div>
+      <p v-if="selected.status === 'cured'" class="hint mark-hint">
+        <template v-if="selected.activeMarkCode">
+          已持有效客户画押编号「{{ selected.activeMarkCode }}」，可拨回原布。
+        </template>
+        <template v-else>
+          已固化且无有效画押编号：拨回原布将被挡住，请先到「客户画押」页落下 6 位编号。
+        </template>
+      </p>
       <p v-if="selected.notes" class="hint">{{ selected.notes }}</p>
       <p v-if="panelError" class="error">{{ panelError }}</p>
 

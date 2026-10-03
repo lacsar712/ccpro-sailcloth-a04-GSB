@@ -93,3 +93,6 @@ class Command(BaseCommand):
                 f"浸渍 {DipRun.objects.count()}"
             )
         )
+        # 种子刻意不写入任何客户画押编号：R-03 已固化且无编号，
+        # 拨回原布时应被「没有有效的客户画押编号」挡住，供验收演示。
+        self.stdout.write("客户画押编号：0 条（已固化卷 R-03 无编号）")
